@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swara Display</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .visible {
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+        .highlight {
+            background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            transition: background 0.5s ease-in-out;
+        }
+        .yellow-highlight {
+            color: yellow;
+            font-weight: bold;
+            transition: color 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Swara Practice</h1>
+            <select id="swar-selection" class="bg-gray-700 text-white p-2 rounded">
+                <option value="asc1">Ascending 1</option>
+                <option value="desc1">Descending 1</option>
+                <option value="asc2">Ascending 2</option>
+                <option value="desc2">Descending 2</option>
+            </select>
+            <div>
+                <button id="start-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start Practice</button>
+                <button id="stop-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2">Stop</button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="flex items-center justify-center h-screen flex-col">
+        <div id="countdown" class="text-5xl font-bold mb-4"></div>
+        <div class="text-center text-4xl font-bold p-6 bg-gray-700 rounded-lg shadow-lg transition-opacity duration-1000" id="swar-container"></div>
+    </div>
+
+    <script>
+        const swarSets = {
+            asc1: [
+                "प",
+                "प ध प",
+                "प ध नि ध प",
+                "प ध नि सा नि ध प",
+                "प ध नि सा रे सा नि ध प",
+                "प ध नि सा रे ग रे सा नि ध प",
+                "प ध नि सा रे ग म ग रे सा नि ध प",
+                "प ध नि सा रे ग म प म ग रे सा नि ध प"
+            ],
+            desc1: [
+                "प ध नि सा रे ग म प म ग रे सा नि ध प",
+                "प ध नि सा रे ग म ग रे सा नि ध प",
+                "प ध नि सा रे ग रे सा नि ध प",
+                "प ध नि सा रे सा नि ध प",
+                "प ध नि सा नि ध प",
+                "प ध नि ध प",
+                "प ध प",
+                "प"
+            ],
+            asc2: [
+                "प म प",
+                "प म ग म प",
+                "प म ग रे ग म प",
+                "प म ग रे स रे ग म प",
+                "प म ग रे स नि स रे ग म प",
+                "प म ग रे स नि ध नि स रे ग म प",
+                "प म ग रे स नि ध प ध नि स रे ग म प"
+            ],
+            desc2: [
+                "प म ग रे स नि ध प ध नि स रे ग म प",
+                "प म ग रे स नि ध नि स रे ग म प",
+                "प म ग रे स नि स रे ग म प",
+                "प म ग रे स रे ग म प",
+                "प म ग रे ग म प",
+                "प म ग म प",
+                "प म प"
+            ]
+        };
+        
+        let currentSet = "asc1";
+        let index = 0;
+        let isPlaying = false;
+        let stopRequested = false;
+
+        document.getElementById("swar-selection").addEventListener("change", function() {
+            currentSet = this.value;
+            index = 0;
+        });
+
+        document.getElementById("start-btn").addEventListener("click", function() {
+            if (!isPlaying) {
+                stopRequested = false;
+                countdown(3);
+            }
+        });
+
+        document.getElementById("stop-btn").addEventListener("click", function() {
+            stopRequested = true;
+            isPlaying = false;
+            document.getElementById("swar-container").innerHTML = "";
+            document.getElementById("countdown").innerText = "";
+        });
+
+        function countdown(number) {
+            const countdownElement = document.getElementById("countdown");
+            if (number > 0) {
+                countdownElement.innerText = number;
+                setTimeout(() => countdown(number - 1), 1000);
+            } else {
+                countdownElement.innerText = "Go!";
+                setTimeout(() => {
+                    countdownElement.innerText = "";
+                    isPlaying = true;
+                    index = 0;
+                    showSwar();
+                }, 1000);
+            }
+        }
+
+        function showSwar() {
+            if (stopRequested || index >= swarSets[currentSet].length) {
+                isPlaying = false;
+                return;
+            }
+            
+            const container = document.getElementById("swar-container");
+            container.classList.remove("visible");
+            container.classList.add("hidden");
+            
+            setTimeout(() => {
+                const swarArray = swarSets[currentSet][index].split(" ");
+                container.innerHTML = swarArray.map((swar, i) => `<span id="swar-${i}">${swar}</span>`).join(" ");
+                container.classList.remove("hidden");
+                container.classList.add("visible");
+                
+                let step = 0;
+                function highlightNextSwar() {
+                    if (stopRequested) return;
+                    if (step > 0) {
+                        document.getElementById(`swar-${step - 1}`).classList.remove("highlight", "yellow-highlight");
+                    }
+                    if (step < swarArray.length) {
+                        document.getElementById(`swar-${step}`).classList.add("highlight", "yellow-highlight");
+                        step++;
+                        setTimeout(highlightNextSwar, 400);
+                    } else {
+                        setTimeout(() => {
+                            index++;
+                            showSwar();
+                        }, 1000);
+                    }
+                }
+                
+                highlightNextSwar();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
